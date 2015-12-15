@@ -49,9 +49,13 @@
 
 static int display_hint_sent;
 
-int get_number_of_profiles() {
-    return 5;
-}
+enum {
+    PROFILE_POWER_SAVE,
+    PROFILE_BALANCED,
+    PROFILE_HIGH_PERFORMANCE,
+    PROFILE_BIAS_POWER,
+    PROFILE_BIAS_PERFORMANCE
+};
 
 static int current_power_profile = PROFILE_BALANCED;
 static int low_power_mode = 0;
@@ -170,7 +174,7 @@ int power_hint_override(__attribute__((unused)) struct power_module *module,
         power_hint_t hint, void *data)
 {
     if (hint == POWER_HINT_SET_PROFILE && !low_power_mode) {
-        set_power_profile(*(int32_t *)data);
+        set_power_profile((intptr_t)data);
         return HINT_HANDLED;
     }
 
@@ -209,7 +213,7 @@ int power_hint_override(__attribute__((unused)) struct power_module *module,
     }
 
     if (hint == POWER_HINT_CPU_BOOST) {
-        int duration = *(int32_t *)data / 1000;
+        int duration = (intptr_t)data / 1000;
         int resources[] = { SCHED_BOOST_ON };
 
         if (duration > 0)

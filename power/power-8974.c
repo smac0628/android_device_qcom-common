@@ -53,11 +53,15 @@ static int display_hint2_sent;
 static int first_display_off_hint;
 extern int display_boost;
 
-static int current_power_profile = PROFILE_BALANCED;
+enum {
+    PROFILE_POWER_SAVE = 0,
+    PROFILE_BALANCED,
+    PROFILE_HIGH_PERFORMANCE,
+    PROFILE_BIAS_POWER,
+    PROFILE_BIAS_PERFORMANCE
+};
 
-int get_number_of_profiles() {
-    return 5;
-}
+static int current_power_profile = PROFILE_BALANCED;
 
 static void set_power_profile(int profile) {
 
@@ -110,7 +114,7 @@ int power_hint_override(__attribute__((unused)) struct power_module *module,
         power_hint_t hint, void *data)
 {
     if (hint == POWER_HINT_SET_PROFILE) {
-        set_power_profile(*(int32_t *)data);
+        set_power_profile((intptr_t)data);
         return HINT_HANDLED;
     }
 
@@ -140,9 +144,8 @@ int power_hint_override(__attribute__((unused)) struct power_module *module,
     }
 
     if (hint == POWER_HINT_CPU_BOOST) {
-        int duration = *(int32_t *)data / 1000;
-        int resources[] = { CPUS_ONLINE_MIN_2,
-            0x20F, 0x30F, 0x40F, 0x50F };
+        int duration = (intptr_t)data / 1000;
+        int resources[] = { CPUS_ONLINE_MIN_2, 0x20F, 0x30F };
 
         if (duration)
             interaction(duration, sizeof(resources)/sizeof(resources[0]), resources);
